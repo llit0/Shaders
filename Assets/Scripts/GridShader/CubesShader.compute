@@ -1,0 +1,38 @@
+#pragma kernel CSMain
+
+float resolution;
+float repetitions;
+
+struct Cube
+{
+    float3 position;
+    float4 color;
+};
+
+RWStructuredBuffer<Cube> cubes;
+
+float Rand(float2 co)
+{
+    return (frac(sin(dot(co.xy, float2(2.4348, 3.2353))) * 158.5453)) * 0.85;
+}
+
+[numthreads(10,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float x = id.x / resolution;
+    
+    Cube cube = cubes[id.x];
+
+    for(int i = 0; i < repetitions; i++)
+    {
+        const float zPos = Rand(float2(x, cube.position.z));
+        cube.position.z = zPos;
+        
+        float r = Rand(float2(cube.color.r, cube.color.g));
+        float g = Rand(float2(cube.color.g, cube.color.b));
+        float b = Rand(float2(cube.color.b, cube.color.r));
+        cube.color = float4(r, g, b, 1.0);
+    }
+    
+    cubes[id.x] = cube;
+}
